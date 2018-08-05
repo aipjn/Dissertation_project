@@ -81,7 +81,7 @@ class RNN(nn.Module):
         h_q = h_q.view(1, -1)
         h_a = h_a.view(1, -1)
         result = F.sigmoid(self.bilinear1(h_t, h_a) + self.bilinear2(h_q, h_a))
-        print(result)
+        # print(result)
         return result
 
 
