@@ -1,11 +1,18 @@
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from nltk.stem import WordNetLemmatizer
+import string
 
 stopWords = set(stopwords.words('english'))
 ps = PorterStemmer()
 wl = WordNetLemmatizer()
 
+
+# lowercase the texts and remove punctuation
+def formateLine(line):
+    line = line.lower()
+    translator = str.maketrans('', '', string.punctuation)
+    return line.translate(translator)
 
 def removeStopwords(text):
     newtext = ''
@@ -20,7 +27,7 @@ def stemming(text):
         newtext += wl.lemmatize(ps.stem(word)) + ' '
     return newtext
 
-def vocabulary(traindata, embedding):
+def vocabulary(traindata):
     vocab = ''
     for instance in traindata:
         vocab += stemming(instance['text'])
@@ -28,10 +35,6 @@ def vocabulary(traindata, embedding):
             vocab += stemming(question['question'])
             for answer in question['answers']:
                 vocab += stemming(answer['answer'])
-    # keys = []
-    # for key in embedding.keys():
-    #     keys.append(key)
-    # print(len(keys), len(vocab.split()))
     vocabset = set(vocab.split())
 
     return vocabset

@@ -1,5 +1,5 @@
 import xml.etree.ElementTree as ET
-import string
+from utils.utils import formateLine
 
 class Dataset(object):
 
@@ -7,6 +7,11 @@ class Dataset(object):
 
         trainset_path = "MCScript/train-data.xml"
         testset_path = "MCScript/dev-data.xml"
+
+        self.longAnsLen = 5
+
+        self.longAns = 0
+        self.shortAns = 0
 
         self.how = 0
         self.where = 0
@@ -17,6 +22,9 @@ class Dataset(object):
         self.when = 0
         self.which = 0
         self.others = 0
+
+        self.text_len = 0
+        self.ques_len = 0
 
         self.commonsense = 0
 
@@ -36,22 +44,30 @@ class Dataset(object):
             # text
             # print(child[0].tag)
             # print(child[0].text)
-            ins['text'] = self.formateLine(child[0].text)
+            ins['text'] = formateLine(child[0].text)
+            if test:
+                self.text_len += 1
             questions = []
             for question in child[1]:
                 # question
                 ques = {}
                 # print(questions.tag)
                 # print(questions.attrib['text'])
-                ques['question'] = self.formateLine(question.attrib['text'])
+                ques['question'] = formateLine(question.attrib['text'])
+                if test:
+                    self.ques_len += 1
                 answers = []
                 for answer in question:
                     # answers
                     ans = {}
                     # print(answer.tag)
                     # print(answer.attrib['text'])
-                    ans['answer'] = self.formateLine(answer.attrib['text'])
+                    ans['answer'] = formateLine(answer.attrib['text'])
                     ans['correct'] = answer.attrib['correct']
+                    if len(ans['answer'].split()) > self.longAnsLen:
+                        self.longAns += 1
+                    else:
+                        self.shortAns += 1
                     answers.append(ans)
                 # store question information for evaluation
                 if test:
@@ -66,12 +82,6 @@ class Dataset(object):
             ins['questions'] = questions
             datalist.append(ins)
         return datalist
-
-    # lowercase the texts and remove punctuation
-    def formateLine(self, line):
-        line = line.lower()
-        translator = str.maketrans('', '', string.punctuation)
-        return line.translate(translator)
 
     def questionType(self, queBeginner):
         if queBeginner == 'how':
@@ -101,7 +111,6 @@ class Dataset(object):
         else:
             self.others += 1
             return 'others'
-
 
 
 

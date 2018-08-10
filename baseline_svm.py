@@ -164,7 +164,7 @@ def test(testset, model):
                 y.append(0)
             else:
                 y.append(1)
-    return y, model.predict(X)
+    return y, model.predict_proba(X)
 
 if __name__ == '__main__':
     begin = time.time()

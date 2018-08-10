@@ -13,7 +13,7 @@ from utils.utils import stemming, vocabulary
 torch.manual_seed(1)
 embedding = Embedding()
 data = Dataset()
-vocab = vocabulary(data.trainset, embedding.embeddings)
+vocab = vocabulary(data.trainset)
 word_to_ix = {word: i for i, word in enumerate(vocab)}
 
 class RNN(nn.Module):
@@ -33,16 +33,8 @@ class RNN(nn.Module):
         self.bilinear1 = nn.Bilinear(hidden_size * 2, hidden_size * 2, 1)
         self.bilinear2 = nn.Bilinear(hidden_size * 2, hidden_size * 2, 1)
         # self.atten_q_t = nn.Linear(hidden_size*2, hidden_size)
-        # self.atten_a_t = nn.Linear(hidden_size*2, hidden_size)
-        # self.atten_a_q = nn.Linear(hidden_size*2, hidden_size)
-        # self.linear_a = nn.Linear(hidden_size*2, hidden_size*2)
-        # self.linear_t = nn.Linear(hidden_size*2, hidden_size*2)
-        # self.linear_q = nn.Linear(hidden_size*2, hidden_size*2)
-        # self.linear_a2 = nn.Linear(hidden_size * 2, hidden_size * 2)
-        # self.linear_t2 = nn.Linear(hidden_size * 2, hidden_size * 2)
-        # self.linear_q2 = nn.Linear(hidden_size * 2, hidden_size * 2)
-
-
+        self.atten_a_t = nn.Linear(hidden_size*2, hidden_size)
+        self.atten_a_q = nn.Linear(hidden_size*2, hidden_size)
 
 
     def forward(self, text, question, answer):
@@ -63,10 +55,6 @@ class RNN(nn.Module):
         # output_q = output_q.view(-1, self.hidden_size * 2)
         # output_t = output_t.view(-1, self.hidden_size*2)
 
-        # attention
-        # output_t = self.atten(output_a, output_t, self.atten_a_t)
-        # output_q = self.atten(output_a, output_q, self.atten_a_q)
-
         # t_a = torch.mm(output_a, torch.t(output_t))
         # t_a = t_a.sum() / (len(output_t) * len(output_a))
         #
@@ -77,10 +65,14 @@ class RNN(nn.Module):
         # result = F.sigmoid((t_a + q_a) / 2)
         # result = F.sigmoid(t_a)
 
-        h_t = h_t.view(1, -1)
+        output_t = output_t.view(-1, self.hidden_size * 2)
+        # output_q = output_q.view(-1, self.hidden_size * 2)
         h_q = h_q.view(1, -1)
         h_a = h_a.view(1, -1)
-        result = F.sigmoid(self.bilinear1(h_t, h_a) + self.bilinear2(h_q, h_a))
+        # attention
+        output_t = self.atten(h_a, output_t, self.atten_a_t)
+        # output_q = self.atten(h_a, output_q, self.atten_a_q)
+        result = F.sigmoid(self.bilinear1(output_t, h_a) + self.bilinear2(h_q, h_a))
         # print(result)
         return result
 
@@ -116,22 +108,15 @@ class RNN(nn.Module):
 
 
     def atten(self, embs1, embs2, linear):
-        # embs1 = embs1.squeeze(0)
-        # embs2 = embs2.squeeze(0)
-        for i in range(embs1.size()[0]):
-            dots = torch.dot(F.relu(linear(embs1[i])), F.relu(linear(embs2[0])))
-            for j in range(embs2.size()[0] - 1):
-                dot = torch.dot(F.relu(linear(embs1[i])), F.relu(linear(embs2[j+1])))
-                dots = torch.cat((dots, dot), 0)
-            attention = autograd.Variable(torch.zeros(self.hidden_size * 2), requires_grad=True)
-            alphas = F.softmax(dots, 0)
-            for j in range(embs2.size()[0]):
-                attention = torch.add(alphas[j] * embs2[j], attention)
-            if i == 0:
-                embs = attention.view(1, -1)
-            else:
-                embs = torch.cat((embs, attention.view(1, -1)), 0)
-        return embs
+        dots = torch.dot(F.relu(linear(embs1)), F.relu(linear(embs2[0])))
+        for j in range(embs2.size()[0] - 1):
+            dot = torch.dot(F.relu(linear(embs1)), F.relu(linear(embs2[j+1])))
+            dots = torch.cat((dots, dot), 0)
+        attention = autograd.Variable(torch.zeros(self.hidden_size * 2), requires_grad=True)
+        alphas = F.softmax(dots, 0)
+        for j in range(embs2.size()[0]):
+            attention = torch.add(alphas[j] * embs2[j], attention)
+        return attention.view(1, -1)
 
     # def getEmbedding(self, text):
     #     embs = []
@@ -145,7 +130,7 @@ class RNN(nn.Module):
 def train(trainset, model, optimizer, loss_function):
     index = 0
     losses = []
-    for epoch in range(10):
+    for epoch in range(50):
         total_loss = torch.Tensor([0])
         for instance in trainset:
             print(index)
@@ -161,6 +146,8 @@ def train(trainset, model, optimizer, loss_function):
                         y = autograd.Variable(torch.FloatTensor([1]))
                     else:
                         y = autograd.Variable(torch.FloatTensor([0]))
+                    if output.data[0][0] == 0:
+                        output = output + autograd.Variable(torch.FloatTensor([0.0001]))
                     loss = loss_function(output, y)
                     # print('output', output.data[0])
                     # print('loss', loss.data[0])

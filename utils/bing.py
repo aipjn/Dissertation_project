@@ -1,18 +1,42 @@
-subscription_key = '081233ba8e524aa0a71a531281c94a9b'
-assert subscription_key
-search_url = "https://api.cognitive.microsoft.com/bing/v7.0/search"
-search_term = "Did they dry them properly?"
-
 import requests
 import urllib
 from bs4 import BeautifulSoup
+from utils.utils import formateLine
 
-headers = {"Ocp-Apim-Subscription-Key": subscription_key}
-params = {"q": search_term, "textDecorations": True, "textFormat": "HTML"}
-response = requests.get(search_url, headers=headers, params=params)
-response.raise_for_status()
-search_results = response.json()
 
+subscription_key = '081233ba8e524aa0a71a531281c94a9b'
+assert subscription_key
+search_url = "https://api.cognitive.microsoft.com/bing/v7.0/search"
+
+def getHtml(url):
+    try:
+        page = urllib.request.urlopen(url)
+        html_doc = page.read()
+    except Exception:
+        html_doc = ''
+    soup = BeautifulSoup(html_doc, 'html.parser')
+    return soup
+
+def search(question):
+    print(question)
+    texts = []
+    search_term = question
+    headers = {"Ocp-Apim-Subscription-Key": subscription_key}
+    params = {"q": search_term, "textDecorations": True, "textFormat": "HTML"}
+    try:
+        response = requests.get(search_url, headers=headers, params=params)
+        response.raise_for_status()
+        search_results = response.json()
+    except Exception:
+        return ''
+    print("search finish")
+    i = 0
+    for v in search_results["webPages"]["value"]:
+        texts.append(formateLine(getHtml(v["url"]).get_text()))
+        i += 1
+        if i == 5:
+            break
+    return texts
 
 # from IPython.display import HTML
 #
@@ -24,40 +48,6 @@ search_results = response.json()
 # HTML("<table>{0}</table>".format(rows))
 # print(rows)
 
-def getHtml(url):
-
-    page = urllib.request.urlopen(url)
-    html_doc = page.read()
-    soup = BeautifulSoup(html_doc, 'html.parser')
-    return soup
-
-for v in search_results["webPages"]["value"]:
-    print(getHtml(v["url"]).get_text())
-    break
 
 
-# import http.client, urllib.request, urllib.parse, urllib.error, base64
-#
-# headers = {
-#     # Request headers
-#     'Ocp-Apim-Subscription-Key': '{081233ba8e524aa0a71a531281c94a9b}',
-# }
-#
-# params = urllib.parse.urlencode({
-#     # Request parameters
-#     'q': 'bill gates',
-#     'count': '1',
-#     'offset': '0',
-#     'mkt': 'en-us',
-#     'safesearch': 'Moderate',
-# })
-#
-# try:
-#     conn = http.client.HTTPSConnection('api.cognitive.microsoft.com')
-#     conn.request("GET", "/bing/v7.0/search?%s" % params, "{body}", headers)
-#     response = conn.getresponse()
-#     data = response.read()
-#     print(data)
-#     conn.close()
-# except Exception as e:
-#     print("[Errno {0}] {1}".format(e.errno, e.strerror))
+
