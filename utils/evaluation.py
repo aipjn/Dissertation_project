@@ -1,6 +1,11 @@
 class Evaluation(object):
     def __init__(self):
 
+        self.longAnsLen = 5
+
+        self.longAns = 0
+        self.shortAns = 0
+
         self.how = 0
         self.where = 0
         self.why = 0
@@ -10,7 +15,9 @@ class Evaluation(object):
         self.when = 0
         self.which = 0
         self.others = 0
+
         self.commonsense = 0
+        self.wrong = []
 
     def accuracy(self, y, predicty, dataset):
         accurate = 0
@@ -28,6 +35,13 @@ class Evaluation(object):
                 self.questionType(dataset.questionList[j][1])
                 if dataset.questionList[j][2] == 'commonsense':
                     self.commonsense += 1
+                if len(dataset.questionList[j][3][0]['answer'].split()) > self.longAnsLen or \
+                                len(dataset.questionList[j][3][1]['answer'].split()) > self.longAnsLen:
+                    self.longAns += 1
+                else:
+                    self.shortAns += 1
+            else:
+                self.wrong.append(dataset.questionList[j])
 
         print("how question:", self.how/dataset.how)
         print("where question:", self.where / dataset.where)
@@ -38,8 +52,11 @@ class Evaluation(object):
         print("when question:", self.when / dataset.when)
         print("which question:", self.which / dataset.which)
         print("others question:", self.others / dataset.others)
+        print("long answer question:", self.longAns / dataset.longAns)
+        print("short answer question:", self.shortAns / dataset.shortAns)
         print("commonsense question:", self.commonsense / dataset.commonsense)
         print("all accuracy", accurate/len(y))
+        return accurate/len(y)
 
     def questionType(self, quetype):
         if quetype == 'how':

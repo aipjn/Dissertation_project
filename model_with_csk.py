@@ -9,6 +9,11 @@ from RNN import train as rnn_train
 from RNN import test as rnn_test
 from RNN import RNN
 
+import matplotlib
+matplotlib.use('TkAgg')
+
+import matplotlib.pyplot as plt
+
 # prepare data
 begin = time.time()
 data = Dataset()
@@ -23,8 +28,9 @@ def use_csk(data, predicty, model):
     count = 0
     for instance in data:
         for question in instance['questions']:
-            if (predicty[index][0] < low_pro and predicty[index+1][0] < low_pro) \
-                    or (abs(predicty[index+1][0] - predicty[index][0]) < low_diff):
+            if (predicty[index][0] < low_pro and predicty[index + 1][0] < low_pro):
+            # if (predicty[index][0] < low_pro and predicty[index+1][0] < low_pro) \
+            #         or (abs(predicty[index+1][0] - predicty[index][0]) < low_diff):
                 count += 1
                 texts = search(question['question'])
                 if texts == '':
@@ -33,8 +39,8 @@ def use_csk(data, predicty, model):
                 ques = stemming(question['question'])
                 ans1 = stemming(question['answers'][0]['answer'])
                 ans2 = stemming(question['answers'][1]['answer'])
-                ans1_pros = []
-                ans2_pros = []
+                ans1_pros = [predicty[index][0]]
+                ans2_pros = [predicty[index + 1][0]]
                 for text in texts:
                     # print(len(text))
                     text = text[0:100000]
@@ -63,7 +69,15 @@ def use_csk(data, predicty, model):
 rnn = RNN(100, 128, len(vocab))
 optimizer = optim.SGD(rnn.parameters(), lr=0.1)
 loss_function = nn.BCELoss()
-rnn_train(data.trainset, rnn, optimizer, loss_function)
+losses, acc = rnn_train(data.trainset, rnn, optimizer, loss_function, data.testset)
+plt.xlabel("Train epoch")
+plt.ylabel("loss")
+plt.plot([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], losses)
+plt.show()
+plt.xlabel("Train epoch")
+plt.ylabel("accuracy")
+plt.plot([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], acc)
+plt.show()
 # test
 y, predicty = rnn_test(data.testset, rnn)
 # predicty=[0.1, 0.2, 0.55, 0.51, 0.53, 0.7]

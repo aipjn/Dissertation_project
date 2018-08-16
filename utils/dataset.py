@@ -6,7 +6,7 @@ class Dataset(object):
     def __init__(self):
 
         trainset_path = "MCScript/train-data.xml"
-        testset_path = "MCScript/dev-data.xml"
+        testset_path = "MCScript/test-data.xml"
 
         self.longAnsLen = 5
 
@@ -64,13 +64,15 @@ class Dataset(object):
                     # print(answer.attrib['text'])
                     ans['answer'] = formateLine(answer.attrib['text'])
                     ans['correct'] = answer.attrib['correct']
-                    if len(ans['answer'].split()) > self.longAnsLen:
-                        self.longAns += 1
-                    else:
-                        self.shortAns += 1
+
                     answers.append(ans)
                 # store question information for evaluation
                 if test:
+                    if len(answers[0]['answer'].split()) > self.longAnsLen or \
+                                    len(answers[1]['answer'].split()) > self.longAnsLen:
+                        self.longAns += 1
+                    else:
+                        self.shortAns += 1
                     self.questionList.append([ques['question'],
                                               self.questionType(ques['question'].split()[0]),
                                               question.attrib['type'],

@@ -8,11 +8,15 @@ import numpy as np
 import time
 # nltk.download('stopwords')
 from utils.utils import removeStopwords
+import matplotlib
+matplotlib.use('TkAgg')
+
+import matplotlib.pyplot as plt
 
 
 embedding = Embedding()
 
-def extra_feature(text, answer):
+def extract_feature(text, answer):
     features = []
     count = 0
     for word in answer.split():
@@ -126,9 +130,10 @@ def alignment(text, question, windowsize):
     return index
 
 
-def train(trainset, model):
+def train(trainset, model, i):
     X = []
     y = []
+    index = 0
     for instance in trainset:
         for question in instance['questions']:
             for answer in question['answers']:
@@ -138,11 +143,33 @@ def train(trainset, model):
                 # text = instance['text']
                 # ques = question['question']
                 # ans = answer['answer']
-                X.append(extra_feature(text, ans) + similarities(text, ans, ques) + q_a_similarities(ans, ques))
+                X.append(extract_feature(text, ans) + similarities(text, ans, ques) + q_a_similarities(ans, ques))
                 if answer['correct'] == 'True':
                     y.append(0)
                 else:
                     y.append(1)
+        index += 1
+        if index == i:
+            break
+    # second epoch
+    if index < i:
+        for instance in trainset:
+            for question in instance['questions']:
+                for answer in question['answers']:
+                    text = removeStopwords(instance['text'])
+                    ques = removeStopwords(question['question'])
+                    ans = removeStopwords(answer['answer'])
+                    # text = instance['text']
+                    # ques = question['question']
+                    # ans = answer['answer']
+                    X.append(extract_feature(text, ans) + similarities(text, ans, ques) + q_a_similarities(ans, ques))
+                    if answer['correct'] == 'True':
+                        y.append(0)
+                    else:
+                        y.append(1)
+            index += 1
+            if index == i:
+                break
     model.fit(X, y)
 
 def test(testset, model):
@@ -158,8 +185,8 @@ def test(testset, model):
             # ques = question['question']
             # ans1 = question['answers'][0]['answer']
             # ans2 = question['answers'][1]['answer']
-            X.append(extra_feature(text, ans1) + similarities(text, ans1, ques) + q_a_similarities(ans1, ques))
-            X.append(extra_feature(text, ans2) + similarities(text, ans2, ques) + q_a_similarities(ans2, ques))
+            X.append(extract_feature(text, ans1) + similarities(text, ans1, ques) + q_a_similarities(ans1, ques))
+            X.append(extract_feature(text, ans2) + similarities(text, ans2, ques) + q_a_similarities(ans2, ques))
             if question['answers'][0]['correct'] == 'True':
                 y.append(0)
             else:
@@ -167,12 +194,31 @@ def test(testset, model):
     return y, model.predict_proba(X)
 
 if __name__ == '__main__':
+    # datalen = [200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000,
+    #            2200, 2400, 2600, 2800, 3000]
+    # data = Dataset()
+    # results = []
+    # for i in datalen:
+    #     model = svm.SVC(gamma=10, probability=True)
+    #     train(data.trainset, model, i)
+    #     y, predicty = test(data.testset, model)
+    #     eval = Evaluation()
+    #     results.append(eval.accuracy(y, predicty, data))
+    #
+    # plt.xlabel("Train data text amount")
+    # plt.ylabel("accuracy")
+    # plt.plot(datalen, results)
+    # plt.show()
+
     begin = time.time()
     data = Dataset()
     model = svm.SVC(gamma=10, probability=True)
-    train(data.trainset, model)
+    train(data.trainset, model, 1470)
     y, predicty = test(data.testset, model)
     eval = Evaluation()
     eval.accuracy(y, predicty, data)
-    final = time.time()
-    print("time", final - begin)
+    with open('result.txt', 'w') as f:
+        for index, maxd in enumerate(eval.wrong):
+            f.write("Case #{}: {} ".format(index + 1, maxd) + '\n')
+    # final = time.time()
+    # print("time", final - begin)

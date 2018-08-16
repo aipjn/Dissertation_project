@@ -9,6 +9,10 @@ from utils.dataset import Dataset
 from utils.evaluation import Evaluation
 from utils.embedding import Embedding
 from utils.utils import stemming, vocabulary
+from utils.utils import removeStopwords
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
 
 torch.manual_seed(1)
 embedding = Embedding()
@@ -34,7 +38,8 @@ class RNN(nn.Module):
         self.bilinear2 = nn.Bilinear(hidden_size * 2, hidden_size * 2, 1)
         # self.atten_q_t = nn.Linear(hidden_size*2, hidden_size)
         self.atten_a_t = nn.Linear(hidden_size*2, hidden_size)
-        self.atten_a_q = nn.Linear(hidden_size*2, hidden_size)
+        # self.atten_a_q = nn.Linear(hidden_size*2, hidden_size)
+        self.dropout_rate = 0.5
 
 
     def forward(self, text, question, answer):
@@ -127,10 +132,11 @@ class RNN(nn.Module):
     #         embs.append(emb)
     #     return autograd.Variable(torch.cat(embs).view(1, len(embs), -1))
 
-def train(trainset, model, optimizer, loss_function):
+def train(trainset, model, optimizer, loss_function, testset):
     index = 0
     losses = []
-    for epoch in range(50):
+    acc = []
+    for epoch in range(10):
         total_loss = torch.Tensor([0])
         for instance in trainset:
             print(index)
@@ -146,8 +152,12 @@ def train(trainset, model, optimizer, loss_function):
                         y = autograd.Variable(torch.FloatTensor([1]))
                     else:
                         y = autograd.Variable(torch.FloatTensor([0]))
+                    print("output", output.data[0][0])
+                    # avoid 0 gradient
                     if output.data[0][0] == 0:
                         output = output + autograd.Variable(torch.FloatTensor([0.0001]))
+                    if output.data[0][0] == 1:
+                        output = output - autograd.Variable(torch.FloatTensor([0.0001]))
                     loss = loss_function(output, y)
                     # print('output', output.data[0])
                     # print('loss', loss.data[0])
@@ -157,7 +167,11 @@ def train(trainset, model, optimizer, loss_function):
                     #     print('param', param.grad.data.sum())
                     total_loss += loss.data[0]
         losses.append(total_loss)
-    print(losses)
+        y, predicty = test(testset, model)
+        # print(len(y))
+        eval = Evaluation()
+        acc.append(eval.accuracy(y, predicty, data))
+    return losses, acc
 
 def test(testset, model):
     y = []
@@ -182,10 +196,14 @@ if __name__ == '__main__':
     rnn = RNN(100, 128, len(vocab))
     optimizer = optim.SGD(rnn.parameters(), lr=0.1)
     loss_function = nn.BCELoss()
-    train(data.trainset, rnn, optimizer, loss_function)
-    y, predicty = test(data.testset, rnn)
-    # print(len(y))
-    eval = Evaluation()
-    eval.accuracy(y, predicty, data)
+    losses, acc = train(data.trainset, rnn, optimizer, loss_function, data.testset)
+    plt.xlabel("Train epoch")
+    plt.ylabel("loss")
+    plt.plot([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], losses)
+    plt.show()
+    plt.xlabel("Train epoch")
+    plt.ylabel("accuracy")
+    plt.plot([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], acc)
+    plt.show()
     final = time.time()
     print("time:", final - begin)
