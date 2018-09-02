@@ -217,7 +217,7 @@ if __name__ == '__main__':
     y, predicty = test(data.testset, model)
     eval = Evaluation()
     eval.accuracy(y, predicty, data)
-    with open('result.txt', 'w') as f:
+    with open('result_svm.txt', 'w') as f:
         for index, maxd in enumerate(eval.wrong):
             f.write("Case #{}: {} ".format(index + 1, maxd) + '\n')
     # final = time.time()

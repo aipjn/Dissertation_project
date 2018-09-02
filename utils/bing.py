@@ -4,13 +4,13 @@ from bs4 import BeautifulSoup
 from utils.utils import formateLine
 
 
-subscription_key = '081233ba8e524aa0a71a531281c94a9b'
+subscription_key = 'bbcc90fa9a644661a9be48af7a0f047d'
 assert subscription_key
 search_url = "https://api.cognitive.microsoft.com/bing/v7.0/search"
 
 def getHtml(url):
     try:
-        page = urllib.request.urlopen(url)
+        page = urllib.request.urlopen(url, timeout=5)
         html_doc = page.read()
     except Exception:
         html_doc = ''
@@ -33,9 +33,11 @@ def search(question):
     i = 0
     for v in search_results["webPages"]["value"]:
         texts.append(formateLine(getHtml(v["url"]).get_text()))
+        # getHtml(v["url"]).get_text()
         i += 1
         if i == 5:
             break
+    print(len(texts))
     return texts
 
 # from IPython.display import HTML
@@ -47,6 +49,10 @@ def search(question):
 #                   for v in search_results["webPages"]["value"]])
 # HTML("<table>{0}</table>".format(rows))
 # print(rows)
+
+
+if __name__ == '__main__':
+    search("how big was the suitcase")
 
 
 

@@ -53,8 +53,6 @@ def use_csk(data, predicty, model):
                     output2 = model(text, ques, ans2)
                     if output2 is not None:
                         ans2_pros.append(output2.data[0][0])
-                if len(ans1_pros) == 0 or len(ans2_pros) == 0:
-                    continue
                 if sorted(ans1_pros, reverse=True)[0] > sorted(ans2_pros, reverse=True)[0]:
                     predicty[index][0] = 1
                     predicty[index + 1][0] = 0
@@ -70,21 +68,27 @@ rnn = RNN(100, 128, len(vocab))
 optimizer = optim.SGD(rnn.parameters(), lr=0.1)
 loss_function = nn.BCELoss()
 losses, acc = rnn_train(data.trainset, rnn, optimizer, loss_function, data.testset)
-plt.xlabel("Train epoch")
-plt.ylabel("loss")
-plt.plot([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], losses)
-plt.show()
+# plt.xlabel("Train epoch")
+# plt.ylabel("loss")
+# plt.plot([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], losses)
+# plt.show()
 plt.xlabel("Train epoch")
 plt.ylabel("accuracy")
-plt.plot([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], acc)
+plt.plot([1, 2, 3, 4, 5, 6], acc)
 plt.show()
 # test
 y, predicty = rnn_test(data.testset, rnn)
+eval = Evaluation()
+eval.accuracy(y, predicty, data)
+with open('result_rnn.txt', 'w') as f:
+    for index, maxd in enumerate(eval.wrong):
+        f.write("Case #{}: {} ".format(index + 1, maxd) + '\n')
 # predicty=[0.1, 0.2, 0.55, 0.51, 0.53, 0.7]
 # use common sense
 predicty = use_csk(data.testset, predicty, rnn)
 # Evaluation
 eval = Evaluation()
 eval.accuracy(y, predicty, data)
+
 final = time.time()
 print("time:", final - begin)

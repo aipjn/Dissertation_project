@@ -69,9 +69,12 @@ class RNN(nn.Module):
         #
         # result = F.sigmoid((t_a + q_a) / 2)
         # result = F.sigmoid(t_a)
+        output_t = F.dropout(output_t, p=self.dropout_rate)
 
         output_t = output_t.view(-1, self.hidden_size * 2)
         # output_q = output_q.view(-1, self.hidden_size * 2)
+        h_q = F.dropout(h_q, p=self.dropout_rate)
+        h_a = F.dropout(h_a, p=self.dropout_rate)
         h_q = h_q.view(1, -1)
         h_a = h_a.view(1, -1)
         # attention
@@ -136,7 +139,7 @@ def train(trainset, model, optimizer, loss_function, testset):
     index = 0
     losses = []
     acc = []
-    for epoch in range(10):
+    for epoch in range(6):
         total_loss = torch.Tensor([0])
         for instance in trainset:
             print(index)
