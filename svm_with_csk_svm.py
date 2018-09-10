@@ -1,3 +1,8 @@
+"""\
+------------------------------------------------------------
+USE: Using common sense to update SVM model
+------------------------------------------------------------\
+"""
 import time
 from utils.dataset import Dataset
 from utils.utils import stemming, vocabulary

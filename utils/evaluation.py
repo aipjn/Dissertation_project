@@ -1,3 +1,11 @@
+"""\
+------------------------------------------------------------
+USE: evaluate the result by calculating accuracy
+beside the overall accuracy, accuracy on different type
+questions will also be evaluated.
+And the unsolved questions will be stored for further analyses
+------------------------------------------------------------\
+"""
 class Evaluation(object):
     def __init__(self):
 
@@ -41,6 +49,7 @@ class Evaluation(object):
                 else:
                     self.shortAns += 1
             else:
+                # unsolved questions
                 self.wrong.append(dataset.questionList[j])
 
         print("how question:", self.how/dataset.how)

@@ -1,3 +1,8 @@
+"""\
+------------------------------------------------------------
+USE: load pretrained word embeddings from glove
+------------------------------------------------------------\
+"""
 import numpy as np
 class Embedding(object):
     def __init__(self):

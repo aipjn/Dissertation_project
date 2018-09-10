@@ -1,3 +1,11 @@
+"""\
+------------------------------------------------------------
+USE: The RNN model
+The RNN model is a four layer neural network including
+embedding layer, LSTM layer, attention layer and answer layer.
+
+------------------------------------------------------------\
+"""
 import torch
 import torch.nn as nn
 import torch.autograd as autograd
@@ -43,6 +51,7 @@ class RNN(nn.Module):
 
 
     def forward(self, text, question, answer):
+        # Embedding
         emb_t = self.getEmbedding(text).view(-1, 1, self.embedding_dim)
         emb_q = self.getEmbedding(question).view(-1, 1, self.embedding_dim)
         emb_a = self.getEmbedding(answer).view(-1, 1, self.embedding_dim)
@@ -52,6 +61,7 @@ class RNN(nn.Module):
         # self.hidden_t = self.init_hidden(len(text.split()))
         # self.hidden_q = self.init_hidden(len(question.split()))
         # self.hidden_a = self.init_hidden(len(answer.split()))
+        # encoding
         output_t, (h_t, c_t) = self.t_lstm(emb_t, self.hidden_t)
         output_q, (h_q, c_q) = self.q_lstm(emb_q, self.hidden_q)
         output_a, (h_a, c_a) = self.a_lstm(emb_a, self.hidden_a)
@@ -69,6 +79,7 @@ class RNN(nn.Module):
         #
         # result = F.sigmoid((t_a + q_a) / 2)
         # result = F.sigmoid(t_a)
+        # to avoid overfitting
         output_t = F.dropout(output_t, p=self.dropout_rate)
 
         output_t = output_t.view(-1, self.hidden_size * 2)

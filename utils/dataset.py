@@ -1,3 +1,9 @@
+"""\
+------------------------------------------------------------
+USE: read train data and test data from xml files
+different type questions will be counted
+------------------------------------------------------------\
+"""
 import xml.etree.ElementTree as ET
 from utils.utils import formateLine
 
@@ -40,10 +46,7 @@ class Dataset(object):
         root = tree.getroot()
         for child in root:
             ins = {}
-            # print(child.tag, child.attrib['id'])
             # text
-            # print(child[0].tag)
-            # print(child[0].text)
             ins['text'] = formateLine(child[0].text)
             if test:
                 self.text_len += 1

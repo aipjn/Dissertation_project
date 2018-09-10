@@ -1,3 +1,26 @@
+"""\
+------------------------------------------------------------
+USE: The SVM model
+five features were extracted
+1.How many words in answer appeared in text divided by answer length.
+Repeated words in answer were not ignored.
+
+2.Bag of words cosine similarity between answer and question.
+ The answer and question are represented by bag of words,
+ then the cosine of two vectors are calculated.
+
+3.Word embedding cosine similarity between answer and question.
+ The word embeddings use pretrained Golve 100 dimension word embeddings. T
+ he word embeddings of answer are summed up as one vector so does question
+  word embeddings, then the cosine of two vectors will be calculated.
+
+4.Bag of words cosine similarity between answer and relevant text.
+ Same calculation method of feature 2.
+
+5.Word embeddings cosine similarity between answer and relevant text.
+ Same calculation method of feature 3.
+------------------------------------------------------------\
+"""
 from sklearn import svm
 
 from utils.dataset import Dataset
@@ -108,7 +131,7 @@ def cos(v1, v2):
         return 0
     return np.dot(v1, v2) / (np.sqrt(np.dot(v1, v1)) * np.sqrt(np.dot(v2, v2)))
 
- # use sliding window find alignment
+ # use sliding window to find alignment
 def alignment(text, question, windowsize):
     count = 0
     # count how many overlap words in the first windowsize text with question

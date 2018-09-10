@@ -1,3 +1,8 @@
+"""\
+------------------------------------------------------------
+USE: Using common sense to update RNN model
+------------------------------------------------------------\
+"""
 import time
 import torch.optim as optim
 import torch.nn as nn

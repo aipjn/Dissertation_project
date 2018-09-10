@@ -1,3 +1,10 @@
+"""\
+------------------------------------------------------------
+USE: search new texts related to question using bing search from
+website.
+top 5 website contents will be returned
+------------------------------------------------------------\
+"""
 import requests
 import urllib
 from bs4 import BeautifulSoup
@@ -8,6 +15,7 @@ subscription_key = 'bbcc90fa9a644661a9be48af7a0f047d'
 assert subscription_key
 search_url = "https://api.cognitive.microsoft.com/bing/v7.0/search"
 
+# get text content from website
 def getHtml(url):
     try:
         page = urllib.request.urlopen(url, timeout=5)

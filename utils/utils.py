@@ -1,3 +1,8 @@
+"""\
+------------------------------------------------------------
+USE: Some useful functions
+------------------------------------------------------------\
+"""
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from nltk.stem import WordNetLemmatizer
@@ -27,6 +32,7 @@ def stemming(text):
         newtext += wl.lemmatize(ps.stem(word)) + ' '
     return newtext
 
+# find the vocabulary in traindata
 def vocabulary(traindata):
     vocab = ''
     for instance in traindata:
